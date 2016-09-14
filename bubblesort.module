@@ -1,0 +1,126 @@
+<?php
+
+/**
+ * @file
+ * Bubblesort simulator module.
+ *
+ * Developed by Mike Lewis <seismicmike@gmail.com>
+ * On Tuesday, September 13, 2016
+ * For Third & Grove.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function bubblesort_menu() {
+  $items = array();
+  $items['bubblesort'] = array(
+    'title' => 'BubbleSort Simulator',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['bubblesort_simulator'],
+    'access callback' => TRUE,
+  );
+
+  $items['admin/config/system/bubblesort'] = [
+    'title' => 'Bubblesort Simulator',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['bubblesort_simulator_config'],
+    'access arguments' => ['administer site configuration'],
+    'file' => 'bubblesort.admin.inc',
+  ];
+
+  return $items;
+}
+
+/**
+ * Validation callback for the array size setting field.
+ */
+function bubblesort_validate_array_size($element, &$form_state) {
+  if (!empty($element['#value']) && ($element['#value'] < 2 || $element['#value'] > 20)) {
+    form_error($element, t('Please enter an array size between 2 and 20'));
+  }
+}
+
+/**
+ * Get the size of the array.
+ *
+ * @return int
+ *   A number from 2 to 20 representing the number of array elements should be
+ *   used for sorting.
+ */
+function bubblesort_get_array_size() {
+  return variable_get('bubblesort_array_size', 10);
+}
+
+/**
+ * Get the sort direction.
+ *
+ * @return string
+ *   A string representing the direction to sort. Will be one of
+ *   - descending: for sorting lorgest to the top.
+ *   - ascending: for sorting smallest to the top.
+ */
+function bubblesort_get_sort_direction() {
+  return variable_get('bubblesort_sort_direction', 10);
+}
+
+/**
+ * Simulator form.
+ */
+function bubblesort_simulator($form, &$form_state) {
+  if (isset($form_state['array'])) {
+    $form['array'] = $form_state['array'];
+  }
+
+  $form['bubblesort'] = [
+    '#markup' => theme('bubblesort_table', array('form' => $form, 'form_state' => $form_state)),
+  ];
+
+  $form['actions']['shuffle'] = [
+    '#type' => 'submit',
+    '#value' => 'Shuffle',
+  ];
+
+  $form['actions']['step'] = [
+    '#type' => 'submit',
+    '#value' => 'Step',
+  ];
+
+  return $form;
+}
+
+/**
+ * Submit handler for the bubble sort form.
+ */
+function bubblesort_simulator_submit(&$form, &$form_state) {
+  if ($form_state['values']['op'] === 'Shuffle') {
+    $form_state['array'] = bubblesort_generate_array();
+  }
+}
+
+function bubblesort_generate_array() {
+  $array = array();
+  $num = bubblesort_get_array_size();
+
+  for ($i = 0; $i < $num; $i++) {
+    $array[] = rand(1, 100);
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function bubblesort_theme($existing, $type, $theme, $path) {
+  return array(
+    'bubblesort_table' => array(
+      'variables' => array(),
+    ),
+  );
+}
+
+/**
+ * Theme function for the bubblesort table.
+ */
+function theme_bubblesort_table($params) {
+  dpm($params);
+}
