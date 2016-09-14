@@ -1,0 +1,28 @@
+#vector-table {
+  border: 1px solid #000000;
+  margin: 10px;
+  width: 500px;
+  padding: 10px;
+}
+
+.vector-value {
+  background-color: #000000;
+  height: 2px;
+  margin-bottom: 5px;
+}
+
+.vector-swapped-up {
+  background-color: #ff0000;
+}
+
+.vector-swapped-down {
+  background-color: #00ff00;
+}
+
+.simulation-button > img {
+  height: 28px;
+}
+
+.hidden-button {
+  display: none;
+}

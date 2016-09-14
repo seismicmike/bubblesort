@@ -189,14 +189,14 @@ function theme_bubblesort_table($params) {
       // Swap Position is the position that the sorter found the
       // record that needed to be swapped. To highlight that record
       // in the current array, we need to get the position after it.
-      $swap_key = isset($params['swap_position']) ? $params['swap_position'] : NULL;
+      $comparison_key = isset($params['comparison_key']) ? $params['comparison_key'] : NULL;
 
-      if (!is_null($swap_key)) {
-        if ($swap_key === $key) {
+      if (!is_null($comparison_key)) {
+        if ($comparison_key === $key) {
           $classes[] = 'vector-swapped-down';
         }
 
-        if ($swap_key + 1 === $key) {
+        if ($comparison_key + 1 === $key) {
           $classes[] = 'vector-swapped-up';
         }
       }
