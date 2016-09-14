@@ -38,8 +38,22 @@ function bubblesort_menu() {
  * Validation callback for the array size setting field.
  */
 function bubblesort_validate_array_size($element, &$form_state) {
-  if (!empty($element['#value']) && ($element['#value'] < 2 || $element['#value'] > 20)) {
-    form_error($element, t('Please enter an array size between 2 and 20'));
+  if (!empty($element['#value'])) {
+    if (!is_numeric($element['#value'])) {
+      form_error($element, t('@title: Please enter a number', ['@title' => $element['#title']]));
+    }
+
+    if ($element['#value'] <= 0) {
+      form_error($element, t('@title: Please enter positive number.', ['@title' => $element['#title']]));
+    }
+
+    if (!ctype_digit($element['#value'])) {
+      form_error($element, t('@title: Please enter an integer.', ['@title' => $element['#title']]));
+    }
+
+    if (($element['#value'] < 2 || $element['#value'] > 20)) {
+      form_error($element, t('@title: Please enter an array size between 2 and 20', ['@title' => $element['#title']]));
+    }
   }
 }
 
@@ -52,15 +66,15 @@ function bubblesort_validate_range($element, &$form_state) {
   }
 
   if (!is_numeric($element['#value'])) {
-    form_error($element, t('Please enter a number'));
+    form_error($element, t('@title: Please enter a number', ['@title' => $element['#title']]));
   }
 
   if ($element['#value'] <= 0) {
-    form_error($element, t('Please enter positive number.'));
+    form_error($element, t('@title: Please enter positive number.', ['@title' => $element['#title']]));
   }
 
   if (!ctype_digit($element['#value'])) {
-    form_error($element, t('Please enter an integer.'));
+    form_error($element, t('@title: Please enter an integer.', ['@title' => $element['#title']]));
   }
 }
 

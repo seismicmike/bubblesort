@@ -9,11 +9,21 @@
  * Simulator form.
  */
 function bubblesort_simulator($form, &$form_state) {
+  $sorted = FALSE;
+
   $form['markup'] = [
     '#markup' => '<p>Welcome to the Bubblesort Simulator. To begin, click the Shuffle button below to initialize the table, and then click the Step button to watch the data get shuffled.</p>',
   ];
 
-  if (isset($form_state['array'])) {
+  if (isset($form_state['array']) && !empty($form_state['array'])) {
+    $sorted = bubblesort_is_array_sorted($form_state['array']);
+
+    if ($sorted) {
+      $form['complete'] = [
+        '#markup' => t('<h2>Sorting Complete!</h2>'),
+      ];
+    }
+
     $form['bubblesort'] = [
       '#markup' => theme('bubblesort_table', $form_state),
     ];
@@ -29,7 +39,7 @@ function bubblesort_simulator($form, &$form_state) {
    * - The array has been initialize (shuffled).
    * - The array is not yet sorted.
    */
-  if (isset($form_state['array']) && !empty($form_state['array']) && !bubblesort_is_array_sorted($form_state['array'])) {
+  if (isset($form_state['array']) && !empty($form_state['array']) && !$sorted) {
     $form['actions']['step'] = [
       '#type' => 'submit',
       '#value' => t('Step'),
