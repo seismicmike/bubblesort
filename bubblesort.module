@@ -14,15 +14,17 @@
  */
 function bubblesort_menu() {
   $items = array();
-  $items['bubblesort'] = array(
+  $items['bubblesort'] = [
     'title' => 'BubbleSort Simulator',
     'page callback' => 'drupal_get_form',
     'page arguments' => ['bubblesort_simulator'],
     'access callback' => TRUE,
-  );
+    'file' => 'bubblesort.simulator.inc',
+  ];
 
   $items['admin/config/system/bubblesort'] = [
     'title' => 'Bubblesort Simulator',
+    'description' => 'Configure the Bubblesort Simulator',
     'page callback' => 'drupal_get_form',
     'page arguments' => ['bubblesort_simulator_config'],
     'access arguments' => ['administer site configuration'],
@@ -42,6 +44,27 @@ function bubblesort_validate_array_size($element, &$form_state) {
 }
 
 /**
+ * Validation callback for the array size setting field.
+ */
+function bubblesort_validate_range($element, &$form_state) {
+  if (empty($element['#value'])) {
+    return TRUE;
+  }
+
+  if (!is_numeric($element['#value'])) {
+    form_error($element, t('Please enter a number'));
+  }
+
+  if ($element['#value'] <= 0) {
+    form_error($element, t('Please enter positive number.'));
+  }
+
+  if (!ctype_digit($element['#value'])) {
+    form_error($element, t('Please enter an integer.'));
+  }
+}
+
+/**
  * Get the size of the array.
  *
  * @return int
@@ -50,6 +73,28 @@ function bubblesort_validate_array_size($element, &$form_state) {
  */
 function bubblesort_get_array_size() {
   return variable_get('bubblesort_array_size', 10);
+}
+
+/**
+ * Get the size of the array.
+ *
+ * @return int
+ *   A number from 2 to 20 representing the number of array elements should be
+ *   used for sorting.
+ */
+function bubblesort_get_range_min() {
+  return variable_get('bubblesort_range_min', 1);
+}
+
+/**
+ * Get the size of the array.
+ *
+ * @return int
+ *   A number from 2 to 20 representing the number of array elements should be
+ *   used for sorting.
+ */
+function bubblesort_get_range_max() {
+  return variable_get('bubblesort_range_max', 100);
 }
 
 /**
@@ -65,46 +110,52 @@ function bubblesort_get_sort_direction() {
 }
 
 /**
- * Simulator form.
+ * Determines if an array is sorted.
+ *
+ * @param array $array
+ *   The array to validate for sorting.
+ *
+ * @return bool
+ *   TRUE indicates that the array has been sorted.
  */
-function bubblesort_simulator($form, &$form_state) {
-  if (isset($form_state['array'])) {
-    $form['array'] = $form_state['array'];
+function bubblesort_is_array_sorted(array $array) {
+  $sorted = $array;
+
+  switch (bubblesort_get_sort_direction()) {
+    case 'ascending':
+      sort($sorted);
+      break;
+
+    case 'descending':
+    default:
+      rsort($sorted);
+      break;
   }
 
-  $form['bubblesort'] = [
-    '#markup' => theme('bubblesort_table', array('form' => $form, 'form_state' => $form_state)),
-  ];
+  foreach ($array as $key => $value) {
+    if ($value != $sorted[$key]) {
+      return FALSE;
+    }
+  }
 
-  $form['actions']['shuffle'] = [
-    '#type' => 'submit',
-    '#value' => 'Shuffle',
-  ];
-
-  $form['actions']['step'] = [
-    '#type' => 'submit',
-    '#value' => 'Step',
-  ];
-
-  return $form;
+  return TRUE;
 }
 
 /**
- * Submit handler for the bubble sort form.
+ * Initialize (Shuffle) the bubblesort array.
+ *
+ * @return array
+ *   A new array to sort.
  */
-function bubblesort_simulator_submit(&$form, &$form_state) {
-  if ($form_state['values']['op'] === 'Shuffle') {
-    $form_state['array'] = bubblesort_generate_array();
-  }
-}
-
 function bubblesort_generate_array() {
   $array = array();
   $num = bubblesort_get_array_size();
 
   for ($i = 0; $i < $num; $i++) {
-    $array[] = rand(1, 100);
+    $array[] = rand(bubblesort_get_range_min(), bubblesort_get_range_max());
   }
+
+  return $array;
 }
 
 /**
@@ -122,5 +173,46 @@ function bubblesort_theme($existing, $type, $theme, $path) {
  * Theme function for the bubblesort table.
  */
 function theme_bubblesort_table($params) {
-  dpm($params);
+  $array = $params['array'];
+
+  $output = "";
+
+  if (is_array($array)) {
+    drupal_add_css(drupal_get_path('module', 'bubblesort') . '/bubblesort.css');
+
+    $output .= '<div id="vector-table-wrapper">';
+    $output = '<div id="vector-table">';
+
+    foreach ($array as $key => $value) {
+      $classes = ['vector-value'];
+
+      // Swap Position is the position that the sorter found the
+      // record that needed to be swapped. To highlight that record
+      // in the current array, we need to get the position after it.
+      $swap_key = isset($params['swap_position']) ? $params['swap_position'] : NULL;
+
+      if (!is_null($swap_key)) {
+        if ($swap_key === $key) {
+          $classes[] = 'vector-swapped-down';
+        }
+
+        if ($swap_key + 1 === $key) {
+          $classes[] = 'vector-swapped-up';
+        }
+      }
+
+      $length_factor = 500 / bubblesort_get_range_max();
+
+      $output .= sprintf(
+            '<div class="%s" style="width: %dpx;"></div>',
+            implode(' ', $classes),
+            $value * $length_factor
+        );
+    }
+
+    $output .= '</div>';
+    $output .= "</div>";
+  }
+
+  return $output;
 }
